@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="cloud" data-font="Prompt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>StoryCraft - พื้นที่เขียนนิยายส่วนตัว</title>
+  <!-- Google Fonts: Prompt & Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Chart.js สำหรับกราฟหน้าแดชบอร์ด -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* โหลดฟอนต์จากไฟล์ที่คุณเตรียมไว้ในโฟลเดอร์ */
+    @font-face {
+      font-family: 'JS Jindara';
+      src: url('./jindara.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'TF Srivichai';
+      src: url('./srivichai.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* ระบบธีมทั้ง 4 แบบ */
+    :root, [data-theme="cloud"] {
+      --bg-main: #F3F8FA;
+      --bg-card: #FFFFFF;
+      --bg-soft: #E5F1F6;
+      --primary: #3B8296;
+      --primary-hover: #2E6B7D;
+      --primary-light: #D5EBF2;
+      --text-main: #1E293B;
+      --text-muted: #64748B;
+      --border: #DCE8EE;
+      --danger: #E11D48;
+      --danger-bg: #FFE4E6;
+      --shadow: 0 8px 24px rgba(59, 130, 150, 0.08);
+      --nav-bg: rgba(255, 255, 255, 0.92);
+    }
+
+    [data-theme="coffee"] {
+      --bg-main: #F7F3EE;
+      --bg-card: #FFFDF9;
+      --bg-soft: #EFE6DC;
+      --primary: #8C5E3C;
+      --primary-hover: #70492D;
+      --primary-light: #E8D8C8;
+      --text-main: #3E2723;
+      --text-muted: #795548;
+      --border: #E2D5C8;
+      --danger: #C62828;
+      --danger-bg: #FFEBEE;
+      --shadow: 0 8px 24px rgba(140, 94, 60, 0.08);
+      --nav-bg: rgba(255, 253, 249, 0.92);
+    }
+
+    [data-theme="tulip"] {
+      --bg-main: #FDF4F7;
+      --bg-card: #FFFFFF;
+      --bg-soft: #FCE7EF;
+      --primary: #D45D87;
+      --primary-hover: #B8476F;
+      --primary-light: #FAD4E2;
+      --text-main: #3B1D2A;
+      --text-muted: #885A6E;
+      --border: #F5D5E2;
+      --danger: #E11D48;
+      --danger-bg: #FFE4E6;
+      --shadow: 0 8px 24px rgba(212, 93, 135, 0.08);
+      --nav-bg: rgba(255, 255, 255, 0.92);
+    }
+
+    [data-theme="night"] {
+      --bg-main: #0F172A;
+      --bg-card: #1E293B;
+      --bg-soft: #293548;
+      --primary: #60A5FA;
+      --primary-hover: #3B82F6;
+      --primary-light: #1E3A5F;
+      --text-main: #F1F5F9;
+      --text-muted: #94A3B8;
+      --border: #334155;
+      --danger: #FB7185;
+      --danger-bg: #4C0519;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --nav-bg: rgba(30, 41, 59, 0.92);
+    }
+
+    /* ระบบเปลี่ยนฟอนต์ */
+    [data-font="Prompt"] { --font-family: 'Prompt', sans-serif; }
+    [data-font="Sarabun"] { --font-family: 'Sarabun', sans-serif; }
+    [data-font="JS Jindara"] { --font-family: 'JS Jindara', 'Prompt', sans-serif; }
+    [data-font="TF Srivichai"] { --font-family: 'TF Srivichai', 'Prompt', sans-serif; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-main); color: var(--text-main); transition: background-color 0.3s, color 0.3s; min-height: 100vh; padding-bottom: 95px; }
+    button, input, select, textarea { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+
+    /* Container หลัก (รองรับทั้งมือถือและคอม) */
+    .app-container { max-width: 820px; margin: 0 auto; padding: 16px 18px; }
+
+    /* Top Header */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 0 16px; position: sticky; top: 0; background: var(--bg-main); z-index: 20; }
+    .brand { display: flex; align-items: center; gap: 8px; font-size: 1.35rem; font-weight: 700; color: var(--primary); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--bg-card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: 0.2s; }
+    .icon-btn:hover { transform: translateY(-1px); background: var(--bg-soft); }
+
+    /* Search Bar แบบขยายได้ */
+    .search-drawer { display: none; margin-bottom: 14px; animation: fadeIn 0.2s; }
+    .search-drawer.active { display: block; }
+    .search-input-wrap { display: flex; align-items: center; background: var(--bg-card); border: 1.5px solid var(--primary); border-radius: 14px; padding: 8px 14px; gap: 8px; }
+    .search-input-wrap input { border: none; outline: none; background: transparent; width: 100%; font-size: 0.95rem; }
+
+    /* Page Header */
+    .section-title { font-size: 1.45rem; font-weight: 700; margin-bottom: 2px; }
+    .section-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; }
+
+    /* Grid & List View ของคลังนิยาย */
+    .novel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    .novel-grid.list-view { grid-template-columns: 1fr; }
+
+    .novel-card { background: var(--bg-card); border-radius: 18px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; position: relative; }
+    .novel-card:hover { transform: translateY(-3px); }
+    .novel-grid.list-view .novel-card { flex-direction: row; align-items: center; padding: 10px; gap: 14px; }
+
+    .novel-cover { width: 100%; aspect-ratio: 3/4; object-fit: cover; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2rem; }
+    .novel-grid.list-view .novel-cover { width: 72px; height: 96px; aspect-ratio: auto; border-radius: 12px; flex-shrink: 0; }
+
+    .badge-latest { position: absolute; top: 10px; left: 10px; background: var(--primary); color: #fff; font-size: 0.68rem; font-weight: 600; padding: 3px 9px; border-radius: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .novel-grid.list-view .badge-latest { position: static; display: inline-block; margin-bottom: 4px; }
+
+    .novel-info { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .novel-grid.list-view .novel-info { padding: 0; }
+    .novel-title { font-weight: 700; font-size: 0.98rem; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .novel-pen { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; }
+    .novel-stats { font-size: 0.72rem; color: var(--text-muted); display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 8px; }
+    .novel-tag-mini { font-size: 0.7rem; color: var(--primary); margin-top: 4px; font-weight: 500; }
+
+    .add-card-btn { border: 2px dashed var(--primary); background: var(--bg-soft); border-radius: 18px; min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--primary); font-weight: 600; transition: 0.2s; }
+    .novel-grid.list-view .add-card-btn { min-height: 75px; flex-direction: row; }
+    .add-card-btn:hover { background: var(--primary-light); }
+
+    /* Floating Bottom Navigation */
+    .floating-nav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 520px; background: var(--nav-bg); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 24px; padding: 8px 12px; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.12); z-index: 50; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--text-muted); padding: 6px 12px; border-radius: 16px; transition: 0.2s; font-weight: 500; }
+    .nav-item.active { color: var(--primary); background: var(--bg-soft); font-weight: 700; }
+    .nav-item svg { width: 21px; height: 21px; }
+
+    /* Views Management */
+    .view-section { display: none; animation: fadeIn 0.22s ease; }
+    .view-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Popover / Modals */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+    .modal-backdrop.active { display: flex; }
+    .modal-box { background: var(--bg-card); border-radius: 22px; width: 100%; max-width: 400px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 88vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-weight: 700; font-size: 1.05rem; }
+
+    /* Setting & Theme Options */
+    .theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .theme-choice { background: var(--bg-soft); border: 2px solid transparent; border-radius: 14px; padding: 10px 4px; text-align: center; font-size: 0.75rem; font-weight: 600; transition: 0.2s; }
+    .theme-choice.active { border-color: var(--primary); background: var(--primary-light); }
+    .theme-emoji { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+
+    .radio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .radio-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 12px; background: var(--bg-soft); cursor: pointer; font-size: 0.9rem; border: 1.5px solid transparent; }
+    .radio-item.active { border-color: var(--primary); background: var(--primary-light); font-weight: 600; }
+
+    /* Novel Detail View */
+    .detail-banner { width: 100%; height: 210px; border-radius: 20px; object-fit: cover; background: var(--bg-soft); margin-bottom: 14px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .detail-banner img { width: 100%; height: 100%; object-fit: cover; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .chip { background: var(--bg-soft); color: var(--primary); padding: 4px 11px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; }
+    .warn-box { background: var(--danger-bg); color: var(--danger); padding: 10px 14px; border-radius: 14px; font-size: 0.82rem; margin: 10px 0; display: flex; align-items: flex-start; gap: 8px; }
+    .info-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+    .info-card h4 { font-size: 0.9rem; color: var(--primary); margin-bottom: 6px; }
+    .info-card p { font-size: 0.88rem; line-height: 1.6; color: var(--text-main); white-space: pre-line; }
+
+    .chapter-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.15s; }
+    .chapter-item:hover { border-color: var(--primary); background: var(--bg-soft); }
+
+    /* Form Inputs */
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-main); }
+    .form-control { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); font-size: 0.9rem; outline: none; }
+    .form-control:focus { border-color: var(--primary); }
+    .btn-primary { background: var(--primary); color: #fff; padding: 11px 18px; border-radius: 14px; font-weight: 600; font-size: 0.92rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-soft { background: var(--bg-soft); color: var(--primary); padding: 8px 14px; border-radius: 12px; font-weight: 600; font-size: 0.84rem; }
+
+    /* Writer / Editor View */
+    body.editor-mode { padding-bottom: 20px; }
+    body.editor-mode .floating-nav { display: none; }
+    .editor-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+    .editor-title-input { border: none; background: transparent; font-weight: 700; font-size: 1rem; width: 100%; outline: none; }
+    .word-badge { background: var(--bg-soft); color: var(--primary); font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+
+    /* Scrollable Formatting Toolbar */
+    .toolbar-scroll { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 8px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; scrollbar-width: none; }
+    .toolbar-scroll::-webkit-scrollbar { display: none; }
+    .tool-btn { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.88rem; font-weight: 600; color: var(--text-main); background: var(--bg-soft); flex-shrink: 0; }
+    .tool-btn:hover, .tool-btn.active { background: var(--primary); color: #fff; }
+    .tool-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
+
+    .editor-sheet { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; min-height: 62vh; font-size: 1.05rem; line-height: 1.85; outline: none; box-shadow: var(--shadow); }
+    .editor-sheet:empty:before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; }
+    .editor-sheet img { max-width: 100%; border-radius: 12px; margin: 12px 0; }
+
+    /* Reader Mode */
+    .reader-overlay .toolbar-scroll, .reader-overlay .editor-extra-tools { display: none !important; }
+    .reader-overlay .editor-sheet { border: none; box-shadow: none; background: transparent; padding: 10px 4px; font-size: 1.15rem; }
+
+    /* Floating Mini Panel inside Editor (Timer / Find & Replace / Spellcheck) */
+    .editor-panel { background: var(--bg-card); border: 1.5px solid var(--primary); border-radius: 16px; padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); display: none; }
+    .editor-panel.active { display: block; animation: fadeIn 0.2s; }
+
+    /* Calendar Grid */
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+    .cal-day-name { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); padding-bottom: 4px; }
+    .cal-cell { aspect-ratio: 1; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.85rem; cursor: pointer; position: relative; }
+    .cal-cell.selected { background: var(--primary); color: #fff; font-weight: 700; border-color: var(--primary); }
+    .cal-cell.today { border: 2px solid var(--primary); }
+    .cal-dots { display: flex; gap: 2px; margin-top: 3px; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; }
+
+    /* Dashboard */
+    .stat-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+    .stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; }
+    .stat-num { font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-top: 4px; }
+    .insight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+    .insight-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 8px; text-align: center; }
+    .insight-icon { font-size: 1.5rem; margin-bottom: 4px; }
+    .insight-title { font-size: 0.72rem; color: var(--text-muted); }
+    .insight-val { font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-top: 2px; }
+    .insight-sub { font-size: 0.68rem; color: var(--primary); }
+
+    @media (max-width: 480px) {
+      .insight-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ==================== 1. หน้าคลังของฉัน (LIBRARY) ==================== -->
+  <section id="view-library" class="view-section active">
+    <div class="top-bar">
+      <div class="brand">
+        <span>📖</span> StoryCraft
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" onclick="toggleSearch()" title="ค้นหานิยาย/แท็ก">🔍</button>
+        <button class="icon-btn" id="theme-indicator-btn" onclick="openModal('modal-theme')" title="เปลี่ยนธีม">☁️</button>
+        <button class="icon-btn" onclick="openModal('modal-settings')" title="ตั้งค่าหน้าแรก">⚙️</button>
+      </div>
+    </div>
+
+    <div id="search-drawer" class="search-drawer">
+      <div class="search-input-wrap">
+        <span>🔍</span>
+        <input type="text" id="library-search-input" placeholder="ค้นหาชื่อเรื่อง, นามปากกา หรือแท็กนิยาย..." oninput="renderLibrary()">
+        <button onclick="clearSearch()" style="color:var(--text-muted);font-size:0.85rem;">✕</button>
+      </div>
+    </div>
+
+    <div class="section-title">คลังของฉัน</div>
+    <div class="section-sub" id="library-count-text">นิยายของคุณ ทั้งหมด 0 เรื่อง</div>
+
+    <div id="novel-list-container" class="novel-grid"></div>
+  </section>
+
+  <!-- ==================== 2. หน้ารายละเอียดนิยาย (NOVEL DETAIL) ==================== -->
+  <section id="view-detail" class="view-section">
+    <div class="top-bar">
+      <button class="icon-btn" onclick="switchTab('library')">←</button>
+      <div style="font-weight:700;">รายละเอียดนิยาย</div>
+      <button class="btn-soft" onclick="openEditNovelModal()">✏️ แก้ไขข้อมูล</button>
+    </div>
+
+    <div id="detail-content"></div>
+  </section>
+
+  <!-- ==================== 3. หน้าแต่งนิยาย (EDITOR) ==================== -->
+  <section id="view-editor" class="view-section">
+    <div class="editor-top">
+      <button class="icon-btn" onclick="exitEditor()" title="ย้อนกลับ">←</button>
+      <input type="text" id="editor-chapter-title" class="editor-title-input" placeholder="ชื่อตอน (เช่น ตอนที่ 1 จุดเริ่มต้น...)" oninput="autoSaveChapter()">
+      <span class="word-badge" id="editor-word-count">0 ตัวอักษร</span>
+      <button class="icon-btn" onclick="toggleEditorPanel('panel-timer')" title="นาฬิกาจับเวลา">⏱️</button>
+      <button class="icon-btn" onclick="toggleEditorPanel('panel-find')" title="ค้นหา & แทนที่">🔍</button>
+    </div>
+
+    <!-- แผงจับเวลา -->
+    <div id="panel-timer" class="editor-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong>⏱️ ตั้งเวลา จับเวลาเขียนนิยาย</strong>
+        <button onclick="toggleEditorPanel('panel-timer')">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn-soft" onclick="setTimerMinutes(25)">25 นาที</button>
+        <button class="btn-soft" onclick="setTimerMinutes(50)">50 นาที</button>
+        <button class="btn-soft" onclick="setTimerMinutes(60)">1 ชั่วโมง</button>
+        <input type="number" id="custom-timer-min" placeholder="นาที" style="width:70px;padding:6px;border-radius:10px;border:1px solid var(--border);background:var(--bg-soft);">
+        <button class="btn-soft" onclick="setTimerMinutes(document.getElementById('custom-timer-min').value)">ตั้งค่า</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div id="timer-display" style="font-size:1.6rem;font-weight:700;color:var(--primary);">25:00</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" id="timer-start-btn" onclick="toggleTimerRun()">เริ่มจับเวลา</button>
+          <button class="btn-soft" onclick="resetTimer()">รีเซ็ต</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- แผงค้นหา & แทนที่ -->
+    <div id="panel-find" class="editor-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong>🔍 ค้นหา & แทนที่</strong>
+        <button onclick="toggleEditorPanel('panel-find')">✕</button>
+      </div>
+      <div style="display:grid;gap:8px;">
+        <input type="text" id="find-text" class="form-control" placeholder="คำที่ต้องการค้นหา...">
+        <input type="text" id="replace-text" class="form-control" placeholder="แทนที่ด้วย...">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" style="flex:1;" onclick="replaceAllText()">แทนที่ทั้งหมด</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- แผงเช็กคำผิด -->
+    <div id="panel-spell" class="editor-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong>ABC เช็กคำผิดภาษาไทยเบื้องต้น</strong>
+        <button onclick="toggleEditorPanel('panel-spell')">✕</button>
+      </div>
+      <div id="spell-result" style="font-size:0.85rem;line-height:1.6;"></div>
+    </div>
+
+    <!-- แถบเครื่องมือแบบเลื่อนได้ -->
+    <div class="toolbar-scroll">
+      <button class="tool-btn" onclick="execCmd('undo')" title="ย้อนกลับ">↩️</button>
+      <button class="tool-btn" onclick="execCmd('redo')" title="ไปหน้า">↪️</button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" onclick="cycleFontSize()" title="ปรับขนาดตัวอักษร">Aa</button>
+      <label class="tool-btn" title="เปลี่ยนสีตัวอักษร" style="cursor:pointer;">
+        🎨<input type="color" onchange="execCmd('foreColor', this.value)" style="width:0;height:0;opacity:0;position:absolute;">
+      </label>
+      <label class="tool-btn" title="คลุมสีไฮไลต์" style="cursor:pointer;">
+        🖍️<input type="color" value="#FEF08A" onchange="execCmd('hiliteColor', this.value)" style="width:0;height:0;opacity:0;position:absolute;">
+      </label>
+      <div class="tool-divider"></div>
+      <button class="tool-btn" onclick="execCmd('bold')" title="ตัวหนา"><b>B</b></button>
+      <button class="tool-btn" onclick="execCmd('italic')" title="ตัวเอียง"><i>I</i></button>
+      <button class="tool-btn" onclick="execCmd('underline')" title="ขีดเส้นใต้"><u>U</u></button>
+      <button class="tool-btn" onclick="execCmd('strikeThrough')" title="ขีดฆ่า"><s>S</s></button>
+      <div class="tool-divider"></div>
+      <label class="tool-btn" title="ใส่รูปภาพในเนื้อเรื่อง" style="cursor:pointer;">
+        🖼️<input type="file" accept="image/*" onchange="insertImageToEditor(event)" style="display:none;">
+      </label>
+      <button class="tool-btn" onclick="adjustTextScale(1)" title="ขยายตัวอักษร">A+</button>
+      <button class="tool-btn" onclick="adjustTextScale(-1)" title="ลดขนาดตัวอักษร">A-</button>
+      <button class="tool-btn" id="reader-mode-btn" onclick="toggleReaderMode()" title="มุมมองนักอ่าน">👁️</button>
+      <button class="tool-btn" onclick="runSpellCheck()" title="เช็กคำผิด">ABC✓</button>
+    </div>
+
+    <div id="reader-exit-bar" style="display:none;margin-bottom:10px;text-align:right;">
+      <button class="btn-primary" onclick="toggleReaderMode()">👁️ ออกจากมุมมองนักอ่าน</button>
+    </div>
+
+    <!-- พื้นที่พิมพ์นิยาย -->
+    <div id="editor-body" class="editor-sheet" contenteditable="true" data-placeholder="เริ่มเขียนเรื่องราวของคุณที่นี่..." oninput="onEditorInput()"></div>
+  </section>
+
+  <!-- ==================== 4. หน้าปฏิทิน (CALENDAR) ==================== -->
+  <section id="view-calendar" class="view-section">
+    <div class="top-bar">
+      <div class="section-title">ปฏิทินวางแผน</div>
+      <button class="btn-primary" onclick="openModal('modal-event')">+ เพิ่มตาราง</button>
+    </div>
+
+    <div class="info-card">
+      <div class="cal-header">
+        <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
+        <strong id="cal-month-label">เดือน ปี</strong>
+        <button class="icon-btn" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div style="display:flex;gap:14px;justify-content:center;margin-top:12px;font-size:0.75rem;color:var(--text-muted);">
+        <span><i class="dot" style="display:inline-block;background:#3B8296;"></i> แต่งนิยาย</span>
+        <span><i class="dot" style="display:inline-block;background:#E11D48;"></i> อัปเดตลงเว็บ</span>
+        <span><i class="dot" style="display:inline-block;background:#F59E0B;"></i> พัก/อื่นๆ</span>
+      </div>
+    </div>
+
+    <div style="font-weight:700;margin:14px 0 8px;" id="selected-date-title">ตารางงานวันนี้</div>
+    <div id="cal-event-list"></div>
+  </section>
+
+  <!-- ==================== 5. หน้าแดชบอร์ด (DASHBOARD) ==================== -->
+  <section id="view-dashboard" class="view-section">
+    <div class="top-bar">
+      <div class="section-title">แดชบอร์ดนักเขียน</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn-primary" id="dash-mode-all" style="flex:1;" onclick="setDashMode('all')">รวมทุกเรื่อง</button>
+      <button class="btn-soft" id="dash-mode-single" style="flex:1;" onclick="setDashMode('single')">แยกเรื่อง</button>
+    </div>
+
+    <div id="dash-novel-select-wrap" style="display:none;margin-bottom:12px;">
+      <select id="dash-novel-select" class="form-control" onchange="renderDashboard()"></select>
+    </div>
+
+    <div class="info-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong>จำนวนตัวอักษรที่แต่งได้ (เดือนนี้)</strong>
+      </div>
+      <canvas id="writingChart" height="170"></canvas>
+    </div>
+
+    <div class="stat-pair">
+      <div class="stat-box">
+        <div style="font-size:0.78rem;color:var(--text-muted);">รวมทั้งหมด</div>
+        <div class="stat-num" id="dash-total-chars">0 ตัวอักษร</div>
+      </div>
+      <div class="stat-box">
+        <div style="font-size:0.78rem;color:var(--text-muted);">เฉลี่ยต่อวัน</div>
+        <div class="stat-num" id="dash-avg-chars">0 ตัวอักษร</div>
+      </div>
+    </div>
+
+    <div style="font-weight:700;margin:12px 0 6px;">วิเคราะห์ผลการเขียนของคุณ</div>
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="insight-icon">🌙</div>
+        <div class="insight-title">เวลาที่ถนัดที่สุด</div>
+        <div class="insight-val" id="insight-best-time">-</div>
+        <div class="insight-sub" id="insight-best-time-sub">เริ่มเขียนเพื่อเก็บสถิติ</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">⚡</div>
+        <div class="insight-title">เรื่องที่แต่งเร็วที่สุด</div>
+        <div class="insight-val" id="insight-fastest">-</div>
+        <div class="insight-sub" id="insight-fastest-sub">-</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">⏳</div>
+        <div class="insight-title">เรื่องที่แต่งนานที่สุด</div>
+        <div class="insight-val" id="insight-longest">-</div>
+        <div class="insight-sub" id="insight-longest-sub">-</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ==================== FLOATING BOTTOM BAR ==================== -->
+<nav class="floating-nav">
+  <button class="nav-item active" id="nav-library" onclick="switchTab('library')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span>คลังของฉัน</span>
+  </button>
+  <button class="nav-item" id="nav-calendar" onclick="switchTab('calendar')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>ปฏิทิน</span>
+  </button>
+  <button class="nav-item" id="nav-write" onclick="createQuickBlankNovelAndWrite()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <span>เพิ่มงานเขียน</span>
+  </button>
+  <button class="nav-item" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>แดชบอร์ด</span>
+  </button>
+</nav>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Modal 1: เปลี่ยนธีม -->
+<div id="modal-theme" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-theme')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>เปลี่ยนธีมแอป</span>
+      <button onclick="closeModal('modal-theme')">✕</button>
+    </div>
+    <div class="theme-grid">
+      <button class="theme-choice" data-theme-val="cloud" onclick="setTheme('cloud', '☁️')">
+        <span class="theme-emoji">☁️</span>ฟ้าพาสเทล
+      </button>
+      <button class="theme-choice" data-theme-val="coffee" onclick="setTheme('coffee', '☕️')">
+        <span class="theme-emoji">☕️</span>สีกาแฟ
+      </button>
+      <button class="theme-choice" data-theme-val="tulip" onclick="setTheme('tulip', '🌷')">
+        <span class="theme-emoji">🌷</span>ชมพูพาสเทล
+      </button>
+      <button class="theme-choice" data-theme-val="night" onclick="setTheme('night', '🌙')">
+        <span class="theme-emoji">🌙</span>กลางคืน
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2: ตั้งค่าหน้าแรก (ฟอนต์ & มุมมอง & สำรองข้อมูล) -->
+<div id="modal-settings" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-settings')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>⚙️ ตั้งค่าปรับแต่งหน้าแรก</span>
+      <button onclick="closeModal('modal-settings')">✕</button>
+    </div>
+
+    <div class="form-label">เลือกฟอนต์ตัวอักษร</div>
+    <div class="radio-list" id="font-selector">
+      <div class="radio-item" data-font-val="Prompt" onclick="setFont('Prompt')" style="font-family:'Prompt'"><span>Prompt (ค่าเริ่มต้น)</span><span>●</span></div>
+      <div class="radio-item" data-font-val="Sarabun" onclick="setFont('Sarabun')" style="font-family:'Sarabun'"><span>Sarabun (สารบรรณ)</span><span>○</span></div>
+      <div class="radio-item" data-font-val="JS Jindara" onclick="setFont('JS Jindara')" style="font-family:'JS Jindara'"><span>JS Jindara (จินดารา)</span><span>○</span></div>
+      <div class="radio-item" data-font-val="TF Srivichai" onclick="setFont('TF Srivichai')" style="font-family:'TF Srivichai'"><span>TF Srivichai (ศรีวิชัย)</span><span>○</span></div>
+    </div>
+
+    <div class="form-label">มุมมองนิยาย</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <button class="btn-soft" id="btn-view-grid" onclick="setLibraryView('grid')">田 แบบกริด</button>
+      <button class="btn-soft" id="btn-view-list" onclick="setLibraryView('list')">☰ แบบลิสต์</button>
+    </div>
+
+    <div class="form-label">สำรองข้อมูลนิยาย (เก็บไฟล์ไว้กันหาย)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn-soft" onclick="exportBackup()">💾 ดาวน์โหลดสำรอง</button>
+      <label class="btn-soft" style="text-align:center;cursor:pointer;">
+        📂 กู้คืนไฟล์<input type="file" accept=".json" onchange="importBackup(event)" style="display:none;">
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 3: เพิ่ม / แก้ไขข้อมูลนิยาย -->
+<div id="modal-novel-form" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-novel-form')">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <span id="novel-form-title">เพิ่มงานเขียนใหม่</span>
+      <button onclick="closeModal('modal-novel-form')">✕</button>
+    </div>
+
+    <div class="form-group" style="text-align:center;">
+      <label style="display:inline-block;cursor:pointer;">
+        <div id="cover-preview-box" style="width:110px;height:145px;border-radius:14px;background:var(--bg-soft);border:2px dashed var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;">
+          <span style="font-size:1.5rem;">📷</span>
+          <span style="font-size:0.75rem;color:var(--primary);">เพิ่ม/เปลี่ยนปก</span>
+        </div>
+        <input type="file" accept="image/*" onchange="handleCoverUpload(event)" style="display:none;">
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ชื่อเรื่อง *</label>
+      <input type="text" id="inp-title" class="form-control" placeholder="ชื่อเรื่องของคุณ...">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="form-group">
+        <label class="form-label">นามปากกา</label>
+        <input type="text" id="inp-pen" class="form-control" placeholder="เช่น Lunelatte">
+      </div>
+      <div class="form-group">
+        <label class="form-label">นักวาด (ถ้ามี)</label>
+        <input type="text" id="inp-artist" class="form-control" placeholder="เช่น Mellow">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="form-group">
+        <label class="form-label">แนวนิยาย</label>
+        <select id="inp-genre" class="form-control">
+          <option value="โรแมนติก">โรแมนติก</option>
+          <option value="ดราม่า">ดราม่า</option>
+          <option value="แฟนตาซี">แฟนตาซี</option>
+          <option value="สืบสวน / ลึกลับ">สืบสวน / ลึกลับ</option>
+          <option value="วาย / ยูริ">วาย / ยูริ</option>
+          <option value="รักวัยรุ่น">รักวัยรุ่น</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">เรทนิยาย</label>
+        <select id="inp-rate" class="form-control">
+          <option value="ทุกวัย">ทุกวัย (PG)</option>
+          <option value="น 13+">น 13+</option>
+          <option value="น 15+">น 15+</option>
+          <option value="ฉ 18+">ฉ 18+</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">แท็กนิยาย (คั่นด้วยเครื่องหมายจุลภาค , )</label>
+      <input type="text" id="inp-tags" class="form-control" placeholder="เช่น มาเฟีย, นิยายรัก, คลั่งรัก">
+    </div>
+    <div class="form-group">
+      <label class="form-label">คำเตือนเนื้อหา (Content Warning)</label>
+      <input type="text" id="inp-warning" class="form-control" placeholder="เช่น มีเนื้อหาเกี่ยวกับความรุนแรง หรือเว้นว่างหากไม่มี">
+    </div>
+    <div class="form-group">
+      <label class="form-label">คำโปรยนิยาย</label>
+      <textarea id="inp-tagline" class="form-control" rows="2" placeholder="เขียนคำโปรยสั้นๆ ดึงดูดนักอ่าน..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">บทนำ & เรื่องย่อ</label>
+      <textarea id="inp-synopsis" class="form-control" rows="3" placeholder="เรื่องย่อของนิยายเรื่องนี้..."></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn-primary" style="flex:1;" onclick="saveNovelForm()">บันทึกข้อมูลนิยาย</button>
+      <button class="btn-soft" id="btn-delete-novel" style="color:var(--danger);display:none;" onclick="deleteCurrentNovel()">ลบเรื่อง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 4: เพิ่มตารางในปฏิทิน -->
+<div id="modal-event" class="modal-backdrop" onclick="closeModalOnBg(event, 'modal-event')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📅 เพิ่มตารางงานเขียน</span>
+      <button onclick="closeModal('modal-event')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ช่วงเวลา</label>
+      <input type="text" id="ev-time" class="form-control" placeholder="เช่น 20:00 - 22:00">
+    </div>
+    <div class="form-group">
+      <label class="form-label">รายละเอียดงาน</label>
+      <input type="text" id="ev-title" class="form-control" placeholder="เช่น แต่งตอนที่ 2 (3,000 ตัวอักษร) หรือ อัปลง ReadAWrite">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ประเภทกิจกรรม</label>
+      <select id="ev-type" class="form-control">
+        <option value="write">🔵 แต่งนิยาย</option>
+        <option value="update">🔴 อัปเดตนิยายลงเว็บ</option>
+        <option value="rest">🟡 พักผ่อน / วางพล็อต</option>
+      </select>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="saveCalendarEvent()">บันทึกตารางงาน</button>
+  </div>
+</div>
+
+<script>
+  /* ==================== STATE & STORAGE ==================== */
+  const STORAGE_KEY = 'storycraft_data_v1';
+  let appData = {
+    settings: { theme: 'cloud', themeEmoji: '☁️', font: 'Prompt', viewMode: 'grid' },
+    novels: [],
+    events: {},
+    writingLogs: [] // { date: 'YYYY-MM-DD', hour: 21, novelId: '...', chars: 120 }
+  };
+
+  let currentNovelId = null;
+  let currentChapterId = null;
+  let isEditingNovel = false;
+  let tempCoverBase64 = '';
+  let calCurrentDate = new Date();
+  let calSelectedDateStr = formatDateISO(new Date());
+  let dashMode = 'all';
+  let chartInstance = null;
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        appData = { ...appData, ...JSON.parse(raw) };
+      } catch (e) { console.error(e); }
+    } else {
+      // ข้อมูลตัวอย่างเริ่มต้น 1 เรื่อง เพื่อให้เห็นภาพรวมทันที
+      const sampleId = 'novel_' + Date.now();
+      appData.novels = [{
+        id: sampleId,
+        title: 'ทิพย์รักมาเฟียร้าย',
+        penName: 'Lunelatte',
+        artist: 'Mellow',
+        genre: 'โรแมนติก',
+        rate: 'ฉ 18+',
+        tags: ['โรแมนติก', 'ดราม่า', 'มาเฟีย', 'นิยายรัก'],
+        warning: 'มีเนื้อหาเกี่ยวกับความรุนแรง การใช้คำหยาบ และฉากอีโรติก เหมาะสำหรับผู้ที่มีอายุ 18 ปีขึ้นไป',
+        tagline: '“เธอคิดว่าการหนีมาแต่งงานกับฉันคือทางรอด... แต่ที่จริงแล้ว เธอแค่เดินเข้ามาในโลกของมาเฟียที่ไม่มีทางออกอีกต่อไป”',
+        synopsis: 'เมื่อสาวน้อยธรรมดาที่ชีวิตพังทลาย ต้องหนีจากอดีตและบังเอิญได้พบกับเขา... มาเฟียผู้ไร้หัวใจ ที่ไม่มีรู้เลยว่าการตกหลุมรักครั้งนี้ จะเปลี่ยนชีวิตเธอไปตลอดกาล',
+        cover: '',
+        createdAt: Date.now() - 86400000 * 3,
+        updatedAt: Date.now(),
+        chapters: [{
+          id: 'chap_1',
+          title: 'ตอนที่ 1 จุดเริ่มต้นของการหนี',
+          content: 'สายลมเย็นพัดผ่านใบไม้แห้งที่ปลิวว่อนอยู่บนถนน หญิงสาวในชุดเสื้อคลุมสีเข้มรีบก้าวเดินไปตามทางแคบ ในมือกำกระเป๋าแน่น หัวใจเต้นรัวราวกับจะหลุดออกมาทุกวินาทีที่เธอเห็นเงาคนด้านหลัง<br><br>“อีกนิดเดียว...”<br><br>เธอกระซิบกับตัวเอง แม้จะรู้ดีว่าไม่มีอะไรปลอดภัยในที่แห่งนี้อีกแล้ว',
+          updatedAt: Date.now()
+        }]
+      }];
+      saveData();
+    }
+    applySettings();
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+  }
+
+  function formatDateISO(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function formatThaiDate(ts) {
+    const d = new Date(ts);
+    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+  }
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  /* ==================== THEME & SETTINGS ==================== */
+  function applySettings() {
+    const { theme, themeEmoji, font, viewMode } = appData.settings;
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-font', font);
+    document.getElementById('theme-indicator-btn').textContent = themeEmoji;
+
+    document.querySelectorAll('.theme-choice').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.themeVal === theme);
+    });
+    document.querySelectorAll('#font-selector .radio-item').forEach(item => {
+      const active = item.dataset.fontVal === font;
+      item.classList.toggle('active', active);
+      item.querySelector('span:last-child').textContent = active ? '●' : '○';
+    });
+    document.getElementById('btn-view-grid').style.border = viewMode === 'grid' ? '2px solid var(--primary)' : 'none';
+    document.getElementById('btn-view-list').style.border = viewMode === 'list' ? '2px solid var(--primary)' : 'none';
+  }
+
+  function setTheme(theme, emoji) {
+    appData.settings.theme = theme;
+    appData.settings.themeEmoji = emoji;
+    saveData();
+    applySettings();
+    closeModal('modal-theme');
+  }
+
+  function setFont(font) {
+    appData.settings.font = font;
+    saveData();
+    applySettings();
+  }
+
+  function setLibraryView(mode) {
+    appData.settings.viewMode = mode;
+    saveData();
+    applySettings();
+    renderLibrary();
+  }
+
+  /* ==================== NAVIGATION ==================== */
+  function switchTab(tabName) {
+    document.body.classList.remove('editor-mode');
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById(`view-${tabName}`).classList.add('active');
+    const navBtn = document.getElementById(`nav-${tabName}`);
+    if (navBtn) navBtn.classList.add('active');
+
+    if (tabName === 'library') renderLibrary();
+    if (tabName === 'calendar') renderCalendar();
+    if (tabName === 'dashboard') renderDashboard();
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function closeModalOnBg(e, id) { if (e.target.id === id) closeModal(id); }
+
+  /* ==================== 1. LIBRARY VIEW ==================== */
+  function toggleSearch() {
+    const drawer = document.getElementById('search-drawer');
+    drawer.classList.toggle('active');
+    if (drawer.classList.contains('active')) document.getElementById('library-search-input').focus();
+  }
+
+  function clearSearch() {
+    document.getElementById('library-search-input').value = '';
+    renderLibrary();
+  }
+
+  function renderLibrary() {
+    const container = document.getElementById('novel-list-container');
+    container.className = 'novel-grid' + (appData.settings.viewMode === 'list' ? ' list-view' : '');
+
+    const keyword = (document.getElementById('library-search-input').value || '').trim().toLowerCase();
+    const sorted = [...appData.novels].sort((a, b) => b.updatedAt - a.updatedAt);
+    const filtered = sorted.filter(n => {
+      if (!keyword) return true;
+      return n.title.toLowerCase().includes(keyword) ||
+             (n.penName || '').toLowerCase().includes(keyword) ||
+             (n.tags || []).some(t => t.toLowerCase().includes(keyword));
+    });
+
+    document.getElementById('library-count-text').textContent = `นิยายของคุณ ทั้งหมด ${appData.novels.length} เรื่อง`;
+
+    let html = filtered.map((novel, idx) => {
+      const totalChars = novel.chapters.reduce((sum, c) => sum + stripHtml(c.content).length, 0);
+      const coverHtml = novel.cover
+        ? `<img src="${novel.cover}" class="novel-cover" alt="ปก">`
+        : `<div class="novel-cover">📖</div>`;
+      const latestBadge = idx === 0 && !keyword ? `<span class="badge-latest">อัปเดตล่าสุด</span>` : '';
+
+      return `
+        <div class="novel-card" onclick="openNovelDetail('${novel.id}')">
+          ${latestBadge}
+          ${coverHtml}
+          <div class="novel-info">
+            <div>
+              <div class="novel-title">${novel.title}</div>
+              <div class="novel-pen">✍️ ${novel.penName || 'ไม่ระบุนามปากกา'}</div>
+            </div>
+            <div>
+              <div class="novel-stats">
+                <span>📄 ${novel.chapters.length} ตอน</span>
+                <span>🔤 ${totalChars.toLocaleString()} ตัวอักษร</span>
+              </div>
+              <div class="novel-tag-mini">🏷️ ${novel.genre} ${(novel.tags && novel.tags[0]) ? '• ' + novel.tags[0] : ''}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    html += `
+      <button class="add-card-btn" onclick="openCreateNovelModal()">
+        <span style="font-size:1.8rem;">+</span>
+        <span>เพิ่มงานเขียนใหม่</span>
+      </button>
+    `;
+    container.innerHTML = html;
+  }
+
+  /* ==================== NOVEL CRUD ==================== */
+  function openCreateNovelModal() {
+    isEditingNovel = false;
+    tempCoverBase64 = '';
+    document.getElementById('novel-form-title').textContent = 'เพิ่มงานเขียนใหม่';
+    document.getElementById('btn-delete-novel').style.display = 'none';
+    document.getElementById('cover-preview-box').innerHTML = `<span style="font-size:1.5rem;">📷</span><span style="font-size:0.75rem;color:var(--primary);">เพิ่มปกเรื่อง</span>`;
+    ['inp-title', 'inp-pen', 'inp-artist', 'inp-tags', 'inp-warning', 'inp-tagline', 'inp-synopsis'].forEach(id => document.getElementById(id).value = '');
+    openModal('modal-novel-form');
+  }
+
+  function openEditNovelModal() {
+    const novel = appData.novels.find(n => n.id === currentNovelId);
+    if (!novel) return;
+    isEditingNovel = true;
+    tempCoverBase64 = novel.cover || '';
+    document.getElementById('novel-form-title').textContent = 'แก้ไขรายละเอียดนิยาย';
+    document.getElementById('btn-delete-novel').style.display = 'inline-flex';
+    document.getElementById('cover-preview-box').innerHTML = tempCoverBase64
+      ? `<img src="${tempCoverBase64}" style="width:100%;height:100%;object-fit:cover;">`
+      : `<span style="font-size:1.5rem;">📷</span><span style="font-size:0.75rem;color:var(--primary);">เปลี่ยนปกเรื่อง</span>`;
+
+    document.getElementById('inp-title').value = novel.title;
+    document.getElementById('inp-pen').value = novel.penName || '';
+    document.getElementById('inp-artist').value = novel.artist || '';
+    document.getElementById('inp-genre').value = novel.genre || 'โรแมนติก';
+    document.getElementById('inp-rate').value = novel.rate || 'ทุกวัย';
+    document.getElementById('inp-tags').value = (novel.tags || []).join(', ');
+    document.getElementById('inp-warning').value = novel.warning || '';
+    document.getElementById('inp-tagline').value = novel.tagline || '';
+    document.getElementById('inp-synopsis').value = novel.synopsis || '';
+    openModal('modal-novel-form');
+  }
+
+  function handleCoverUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      // ย่อขนาดรูปปกอัตโนมัติเพื่อไม่ให้กินพื้นที่ localStorage
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const maxW = 450;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        tempCoverBase64 = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById('cover-preview-box').innerHTML = `<img src="${tempCoverBase64}" style="width:100%;height:100%;object-fit:cover;">`;
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveNovelForm() {
+    const title = document.getElementById('inp-title').value.trim() || 'นิยายไม่มีชื่อเรื่อง';
+    const tags = document.getElementById('inp-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+    if (isEditingNovel) {
+      const novel = appData.novels.find(n => n.id === currentNovelId);
+      Object.assign(novel, {
+        title,
+        penName: document.getElementById('inp-pen').value.trim(),
+        artist: document.getElementById('inp-artist').value.trim(),
+        genre: document.getElementById('inp-genre').value,
+        rate: document.getElementById('inp-rate').value,
+        tags,
+        warning: document.getElementById('inp-warning').value.trim(),
+        tagline: document.getElementById('inp-tagline').value.trim(),
+        synopsis: document.getElementById('inp-synopsis').value.trim(),
+        cover: tempCoverBase64,
+        updatedAt: Date.now()
+      });
+      saveData();
+      closeModal('modal-novel-form');
+      openNovelDetail(novel.id);
+    } else {
+      const newNovel = {
+        id: 'novel_' + Date.now(),
+        title,
+        penName: document.getElementById('inp-pen').value.trim(),
+        artist: document.getElementById('inp-artist').value.trim(),
+        genre: document.getElementById('inp-genre').value,
+        rate: document.getElementById('inp-rate').value,
+        tags,
+        warning: document.getElementById('inp-warning').value.trim(),
+        tagline: document.getElementById('inp-tagline').value.trim(),
+        synopsis: document.getElementById('inp-synopsis').value.trim(),
+        cover: tempCoverBase64,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        chapters: []
+      };
+      appData.novels.unshift(newNovel);
+      saveData();
+      closeModal('modal-novel-form');
+      openNovelDetail(newNovel.id);
+    }
+  }
+
+  function deleteCurrentNovel() {
+    if (!confirm('ยืนยันการลบนิยายเรื่องนี้และตอนทั้งหมด?')) return;
+    appData.novels = appData.novels.filter(n => n.id !== currentNovelId);
+    saveData();
+    closeModal('modal-novel-form');
+    switchTab('library');
+  }
+
+  /* กดปุ่ม + เพิ่มงานเขียน ที่แถบล่าง -> สร้างเรื่องใหม่ว่างๆ แล้วเข้าหน้าแต่งทันทีตามบรีฟ */
+  function createQuickBlankNovelAndWrite() {
+    const newNovel = {
+      id: 'novel_' + Date.now(),
+      title: 'นิยายเรื่องใหม่ (ยังไม่มีชื่อ)',
+      penName: '',
+      artist: '',
+      genre: 'โรแมนติก',
+      rate: 'ทุกวัย',
+      tags: [],
+      warning: '',
+      tagline: '',
+      synopsis: '',
+      cover: '',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      chapters: [{
+        id: 'chap_' + Date.now(),
+        title: 'ตอนที่ 1',
+        content: '',
+        updatedAt: Date.now()
+      }]
+    };
+    appData.novels.unshift(newNovel);
+    saveData();
+    currentNovelId = newNovel.id;
+    openEditor(newNovel.chapters[0].id);
+  }
+
+  /* ==================== 2. NOVEL DETAIL VIEW ==================== */
+  function openNovelDetail(novelId) {
+    currentNovelId = novelId;
+    const novel = appData.novels.find(n => n.id === novelId);
+    if (!novel) return;
+
+    document.body.classList.remove('editor-mode');
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('view-detail').classList.add('active');
+
+    const bannerHtml = novel.cover
+      ? `<img src="${novel.cover}" alt="ปก">`
+      : `<div style="text-align:center;color:var(--primary);"><div style="font-size:2.5rem;">📖</div><div style="font-size:0.8rem;">กดแก้ไขข้อมูลเพื่อเพิ่มรูปปก</div></div>`;
+
+    const tagsHtml = [novel.genre, ...(novel.tags || [])].map(t => `<span class="chip">${t}</span>`).join('');
+    const warnHtml = novel.warning
+      ? `<div class="warn-box"><strong>${novel.rate}</strong><span>⚠️ <b>คำเตือน:</b> ${novel.warning}</span></div>`
+      : `<div style="margin:6px 0;"><span class="chip" style="background:var(--danger-bg);color:var(--danger);">เรท: ${novel.rate}</span></div>`;
+
+    const chaptersHtml = novel.chapters.map((ch, i) => {
+      const charCount = stripHtml(ch.content).length;
+      const pageCount = Math.max(1, Math.ceil(charCount / 400)); // ประมาณ 400 ตัวอักษร/หน้า A5
+      return `
+        <div class="chapter-item" onclick="openEditor('${ch.id}')">
+          <div>
+            <div style="font-weight:700;font-size:0.95rem;">${ch.title || 'ตอนที่ ' + (i + 1)}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px;">
+              ${charCount.toLocaleString()} ตัวอักษร • ${pageCount} หน้า • แก้ไข ${formatThaiDate(ch.updatedAt)}
+            </div>
+          </div>
+          <span style="color:var(--primary);font-weight:700;">›</span>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-banner">${bannerHtml}</div>
+      <h2 style="font-size:1.35rem;font-weight:700;">${novel.title}</h2>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-top:2px;">
+        โดย <b>${novel.penName || 'ไม่ระบุ'}</b> ${novel.artist ? `• วาดภาพโดย <b>${novel.artist}</b>` : ''}
+      </div>
+      <div class="chip-row">${tagsHtml}</div>
+      ${warnHtml}
+      ${novel.tagline ? `<div class="info-card"><h4>คำโปรยนิยาย</h4><p>${novel.tagline}</p></div>` : ''}
+      ${novel.synopsis ? `<div class="info-card"><h4>บทนำ & เรื่องย่อ</h4><p>${novel.synopsis}</p></div>` : ''}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;">
+        <strong>รายตอน (${novel.chapters.length} ตอน)</strong>
+        <button class="btn-primary" style="padding:7px 14px;font-size:0.84rem;" onclick="addNewChapter()">+ เพิ่มตอนใหม่</button>
+      </div>
+      ${chaptersHtml || '<div style="text-align:center;color:var(--text-muted);padding:20px;">ยังไม่มีตอน กดปุ่ม + เพิ่มตอนใหม่ เพื่อเริ่มเขียน</div>'}
+    `;
+  }
+
+  function addNewChapter() {
+    const novel = appData.novels.find(n => n.id === currentNovelId);
+    if (!novel) return;
+    const newChap = {
+      id: 'chap_' + Date.now(),
+      title: `ตอนที่ ${novel.chapters.length + 1}`,
+      content: '',
+      updatedAt: Date.now()
+    };
+    novel.chapters.push(newChap);
+    novel.updatedAt = Date.now();
+    saveData();
+    openEditor(newChap.id);
+  }
+
+  /* ==================== 3. EDITOR VIEW ==================== */
+  let lastCharLength = 0;
+  let editorFontSize = 17;
+
+  function openEditor(chapterId) {
+    currentChapterId = chapterId;
+    const novel = appData.novels.find(n => n.id === currentNovelId);
+    const chapter = novel?.chapters.find(c => c.id === chapterId);
+    if (!chapter) return;
+
+    document.body.classList.add('editor-mode');
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('view-editor').classList.add('active');
+
+    document.getElementById('editor-chapter-title').value = chapter.title;
+    const bodyEl = document.getElementById('editor-body');
+    bodyEl.innerHTML = chapter.content;
+    lastCharLength = stripHtml(chapter.content).length;
+    updateWordCounter();
+  }
+
+  function exitEditor() {
+    autoSaveChapter();
+    document.body.classList.remove('editor-mode');
+    openNovelDetail(currentNovelId);
+  }
+
+  function onEditorInput() {
+    const currentLen = stripHtml(document.getElementById('editor-body').innerHTML).length;
+    const diff = currentLen - lastCharLength;
+    if (diff > 0) {
+      logWritingActivity(diff);
+    }
+    lastCharLength = currentLen;
+    updateWordCounter();
+    autoSaveChapter();
+  }
+
+  function updateWordCounter() {
+    const len = stripHtml(document.getElementById('editor-body').innerHTML).length;
+    document.getElementById('editor-word-count').textContent = `${len.toLocaleString()} ตัวอักษร`;
+  }
+
+  function autoSaveChapter() {
+    const novel = appData.novels.find(n => n.id === currentNovelId);
+    const chapter = novel?.chapters.find(c => c.id === currentChapterId);
+    if (!chapter) return;
+    chapter.title = document.getElementById('editor-chapter-title').value;
+    chapter.content = document.getElementById('editor-body').innerHTML;
+    chapter.updatedAt = Date.now();
+    novel.updatedAt = Date.now();
+    saveData();
+  }
+
+  function execCmd(cmd, val = null) {
+    document.getElementById('editor-body').focus();
+    document.execCommand(cmd, false, val);
+    autoSaveChapter();
+  }
+
+  function adjustTextScale(delta) {
+    editorFontSize = Math.min(28, Math.max(13, editorFontSize + delta * 2));
+    document.getElementById('editor-body').style.fontSize = editorFontSize + 'px';
+  }
+
+  function cycleFontSize() {
+    editorFontSize = editorFontSize >= 23 ? 15 : editorFontSize + 4;
+    document.getElementById('editor-body').style.fontSize = editorFontSize + 'px';
+  }
+
+  function insertImageToEditor(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      execCmd('insertHTML', `<br><img src="${ev.target.result}" alt="ภาพประกอบ"><br>`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function toggleReaderMode() {
+    const sec = document.getElementById('view-editor');
+    const isReader = sec.classList.toggle('reader-overlay');
+    document.getElementById('editor-body').contentEditable = !isReader;
+    document.getElementById('reader-exit-bar').style.display = isReader ? 'block' : 'none';
+  }
+
+  function toggleEditorPanel(panelId) {
+    const target = document.getElementById(panelId);
+    const willOpen = !target.classList.contains('active');
+    document.querySelectorAll('.editor-panel').forEach(p => p.classList.remove('active'));
+    if (willOpen) target.classList.add('active');
+  }
+
+  function replaceAllText() {
+    const findStr = document.getElementById('find-text').value;
+    const repStr = document.getElementById('replace-text').value;
+    if (!findStr) return;
+    const bodyEl = document.getElementById('editor-body');
+    const regex = new RegExp(findStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    bodyEl.innerHTML = bodyEl.innerHTML.replace(regex, repStr);
+    onEditorInput();
+    alert(`แทนที่คำว่า "${findStr}" เรียบร้อยแล้ว`);
+  }
+
+  function runSpellCheck() {
+    toggleEditorPanel('panel-spell');
+    const text = stripHtml(document.getElementById('editor-body').innerHTML);
+    // พจนานุกรมคำที่คนไทยมักพิมพ์ผิดในนิยาย
+    const commonTypos = {
+      'นะค่ะ': 'นะคะ', 'น่ะค่ะ': 'นะคะ', 'คร้าบ': 'ครับ', 'สังเกตุ': 'สังเกต',
+      'อนุญาติ': 'อนุญาต', 'โอกาส': 'โอกาส (ถูกต้อง)', 'ปรากฎ': 'ปรากฏ', 'กฏหมาย': 'กฎหมาย',
+      'กะทันหัน': 'กะทันหัน (ถูกต้อง)', 'กระทันหัน': 'กะทันหัน', 'คลินิค': 'คลินิก',
+      'เซอร์ไพร์ส': 'เซอร์ไพรส์', 'ทะยอย': 'ทยอย', 'ผัดวันประกันพรุ่ง': 'ผัดวันประกันพรุ่ง (ถูกต้อง)',
+      'พะยูน': 'พะยูน (ถูกต้อง)', 'รสชาติ': 'รสชาติ (ถูกต้อง)', 'รสชาด': 'รสชาติ',
+      'ลางสังหรณ์': 'ลางสังหรณ์ (ถูกต้อง)', 'ลางสังหร': 'ลางสังหรณ์', 'สับปะรด': 'สับปะรด (ถูกต้อง)',
+      'หลงไหล': 'หลงใหล', 'อารมณ์': 'อารมณ์ (ถูกต้อง)', 'อารมย์': 'อารมณ์', 'ไต้หวัน': 'ไต้หวัน (ถูกต้อง)'
+    };
+    let found = [];
+    Object.keys(commonTypos).forEach(wrong => {
+      if (!commonTypos[wrong].includes('(ถูกต้อง)') && text.includes(wrong)) {
+        found.push(`• พบคำว่า <b>"${wrong}"</b> → ควรใช้ <b>"${commonTypos[wrong]}"</b>`);
+      }
+    });
+    document.getElementById('spell-result').innerHTML = found.length
+      ? found.join('<br>')
+      : '✅ ไม่พบคำสะกดผิดที่พบบ่อยในตอนนี้ ยอดเยี่ยมมาก!';
+  }
+
+  /* Timer Logic */
+  let timerSeconds = 25 * 60;
+  let timerInterval = null;
+
+  function updateTimerDisplay() {
+    const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+    const s = String(timerSeconds % 60).padStart(2, '0');
+    document.getElementById('timer-display').textContent = `${m}:${s}`;
+  }
+
+  function setTimerMinutes(min) {
+    const val = parseInt(min);
+    if (!val || val <= 0) return;
+    clearInterval(timerInterval);
+    timerInterval = null;
+    document.getElementById('timer-start-btn').textContent = 'เริ่มจับเวลา';
+    timerSeconds = val * 60;
+    updateTimerDisplay();
+  }
+
+  function toggleTimerRun() {
+    const btn = document.getElementById('timer-start-btn');
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      btn.textContent = 'ทำต่อ';
+    } else {
+      btn.textContent = 'หยุดชั่วคราว';
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          btn.textContent = 'เริ่มจับเวลา';
+          alert('⏰ ครบเวลาเขียนนิยายที่ตั้งไว้แล้ว! พักสายตาสักครู่ก่อนลุยต่อนะ');
+        }
+      }, 1000);
+    }
+  }
+
+  function resetTimer() {
+    setTimerMinutes(25);
+  }
+
+  /* ==================== 4. CALENDAR VIEW ==================== */
+  function changeMonth(offset) {
+    calCurrentDate.setMonth(calCurrentDate.getMonth() + offset);
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const year = calCurrentDate.getFullYear();
+    const month = calCurrentDate.getMonth();
+    const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+    document.getElementById('cal-month-label').textContent = `${thaiMonths[month]} ${year + 543}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const todayStr = formatDateISO(new Date());
+
+    const dayNames = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+    let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+    for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const evs = appData.events[dateStr] || [];
+      const dots = evs.slice(0, 3).map(e => {
+        const color = e.type === 'write' ? '#3B8296' : e.type === 'update' ? '#E11D48' : '#F59E0B';
+        return `<span class="dot" style="background:${color};"></span>`;
+      }).join('');
+
+      const cls = ['cal-cell', dateStr === calSelectedDateStr ? 'selected' : '', dateStr === todayStr ? 'today' : ''].join(' ');
+      html += `<div class="${cls}" onclick="selectCalDate('${dateStr}')"><span>${day}</span><div class="cal-dots">${dots}</div></div>`;
+    }
+
+    document.getElementById('cal-grid').innerHTML = html;
+    renderEventList();
+  }
+
+  function selectCalDate(dateStr) {
+    calSelectedDateStr = dateStr;
+    renderCalendar();
+  }
+
+  function renderEventList() {
+    const [y, m, d] = calSelectedDateStr.split('-');
+    document.getElementById('selected-date-title').textContent = `ตารางงานวันที่ ${parseInt(d)}/${parseInt(m)}/${parseInt(y) + 543}`;
+    const list = appData.events[calSelectedDateStr] || [];
+    const container = document.getElementById('cal-event-list');
+
+    if (!list.length) {
+      container.innerHTML = `<div class="info-card" style="text-align:center;color:var(--text-muted);">ยังไม่มีแพลนในวันนี้ กด "+ เพิ่มตาราง" ด้านบนได้เลย</div>`;
+      return;
+    }
+
+    container.innerHTML = list.map((ev, idx) => {
+      const badgeColor = ev.type === 'write' ? '#3B8296' : ev.type === 'update' ? '#E11D48' : '#F59E0B';
+      return `
+        <div class="chapter-item" style="cursor:default;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:10px;height:10px;border-radius:50%;background:${badgeColor};flex-shrink:0;"></span>
+            <div>
+              <div style="font-size:0.78rem;color:var(--primary);font-weight:700;">${ev.time || 'ตลอดวัน'}</div>
+              <div style="font-size:0.9rem;">${ev.title}</div>
+            </div>
+          </div>
+          <button onclick="deleteCalEvent(${idx})" style="color:var(--text-muted);">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function saveCalendarEvent() {
+    const time = document.getElementById('ev-time').value.trim();
+    const title = document.getElementById('ev-title').value.trim();
+    const type = document.getElementById('ev-type').value;
+    if (!title) return alert('กรุณากรอกรายละเอียดงาน');
+
+    if (!appData.events[calSelectedDateStr]) appData.events[calSelectedDateStr] = [];
+    appData.events[calSelectedDateStr].push({ time, title, type });
+    saveData();
+    document.getElementById('ev-time').value = '';
+    document.getElementById('ev-title').value = '';
+    closeModal('modal-event');
+    renderCalendar();
+  }
+
+  function deleteCalEvent(idx) {
+    appData.events[calSelectedDateStr].splice(idx, 1);
+    saveData();
+    renderCalendar();
+  }
+
+  /* ==================== 5. DASHBOARD & ANALYTICS ==================== */
+  function logWritingActivity(charsAdded) {
+    const now = new Date();
+    const dateStr = formatDateISO(now);
+    const hour = now.getHours();
+    const existing = appData.writingLogs.find(l => l.date === dateStr && l.hour === hour && l.novelId === currentNovelId);
+    if (existing) {
+      existing.chars += charsAdded;
+    } else {
+      appData.writingLogs.push({ date: dateStr, hour, novelId: currentNovelId, chars: charsAdded });
+    }
+  }
+
+  function setDashMode(mode) {
+    dashMode = mode;
+    document.getElementById('dash-mode-all').className = mode === 'all' ? 'btn-primary' : 'btn-soft';
+    document.getElementById('dash-mode-single').className = mode === 'single' ? 'btn-primary' : 'btn-soft';
+    document.getElementById('dash-novel-select-wrap').style.display = mode === 'single' ? 'block' : 'none';
+
+    if (mode === 'single') {
+      const sel = document.getElementById('dash-novel-select');
+      sel.innerHTML = appData.novels.map(n => `<option value="${n.id}">${n.title}</option>`).join('');
+    }
+    renderDashboard();
+  }
+
+  function renderDashboard() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const selectedNovelId = document.getElementById('dash-novel-select').value;
+
+    const labels = [];
+    const dataPoints = [];
+    let monthTotal = 0;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      labels.push(d);
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dayChars = appData.writingLogs
+        .filter(l => l.date === dateStr && (dashMode === 'all' || l.novelId === selectedNovelId))
+        .reduce((s, l) => s + l.chars, 0);
+      dataPoints.push(dayChars);
+      monthTotal += dayChars;
+    }
+
+    // ถ้ายังไม่เคยพิมพ์เพิ่มเลย ให้แสดงยอดรวมตัวอักษรปัจจุบันในคลังประกอบการคำนวณ
+    const allNovelChars = appData.novels
+      .filter(n => dashMode === 'all' || n.id === selectedNovelId)
+      .reduce((sum, n) => sum + n.chapters.reduce((s, c) => s + stripHtml(c.content).length, 0), 0);
+
+    const displayTotal = Math.max(monthTotal, allNovelChars);
+    document.getElementById('dash-total-chars').textContent = `${displayTotal.toLocaleString()} ตัวอักษร`;
+    document.getElementById('dash-avg-chars').textContent = `${Math.round(displayTotal / Math.max(1, now.getDate())).toLocaleString()} ตัวอักษร`;
+
+    // วาดกราฟแท่งด้วย Chart.js
+    const ctx = document.getElementById('writingChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'ตัวอักษร',
+          data: dataPoints,
+          backgroundColor: primaryColor,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // วิเคราะห์ช่วงเวลาที่ถนัดที่สุด
+    const hourBuckets = {};
+    appData.writingLogs.forEach(l => {
+      hourBuckets[l.hour] = (hourBuckets[l.hour] || 0) + l.chars;
+    });
+    const bestHourEntry = Object.entries(hourBuckets).sort((a, b) => b[1] - a[1])[0];
+    if (bestHourEntry) {
+      const h = parseInt(bestHourEntry[0]);
+      const totalLogged = Object.values(hourBuckets).reduce((a, b) => a + b, 0);
+      const pct = Math.round((bestHourEntry[1] / totalLogged) * 100);
+      document.getElementById('insight-best-time').textContent = `${String(h).padStart(2, '0')}:00 - ${String((h + 1) % 24).padStart(2, '0')}:00 น.`;
+      document.getElementById('insight-best-time-sub').textContent = `แต่งได้มากสุด (${pct}%)`;
+    } else {
+      document.getElementById('insight-best-time').textContent = '21:00 - 01:00 น.';
+      document.getElementById('insight-best-time-sub').textContent = 'ค่าเริ่มต้น (พิมพ์เพิ่มเพื่อวัดผลจริง)';
+    }
+
+    // วิเคราะห์เรื่องที่แต่งเร็วที่สุด & นานที่สุด
+    if (appData.novels.length > 0) {
+      const novelStats = appData.novels.map(n => {
+        const chars = n.chapters.reduce((s, c) => s + stripHtml(c.content).length, 0);
+        const days = Math.max(1, Math.ceil((n.updatedAt - n.createdAt) / 86400000));
+        return { title: n.title, chars, days, speed: Math.round(chars / days) };
+      });
+
+      const fastest = [...novelStats].sort((a, b) => b.speed - a.speed)[0];
+      const longest = [...novelStats].sort((a, b) => b.days - a.days)[0];
+
+      document.getElementById('insight-fastest').textContent = fastest.title;
+      document.getElementById('insight-fastest-sub').textContent = `(${fastest.speed.toLocaleString()} ตัวอักษร/วัน)`;
+
+      document.getElementById('insight-longest').textContent = longest.title;
+      document.getElementById('insight-longest-sub').textContent = `(${longest.days} วัน)`;
+    }
+  }
+
+  /* ==================== BACKUP & RESTORE ==================== */
+  function exportBackup() {
+    const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `StoryCraft-Backup-${formatDateISO(new Date())}.json`;
+    a.click();
+  }
+
+  function importBackup(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        appData = JSON.parse(ev.target.result);
+        saveData();
+        applySettings();
+        renderLibrary();
+        closeModal('modal-settings');
+        alert('✅ กู้คืนข้อมูลนิยายทั้งหมดเรียบร้อยแล้ว!');
+      } catch (err) {
+        alert('❌ ไฟล์สำรองไม่ถูกต้อง');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // เริ่มทำงานเมื่อเปิดหน้าเว็บ
+  loadData();
+  renderLibrary();
+</script>
+</body>
+</html>
